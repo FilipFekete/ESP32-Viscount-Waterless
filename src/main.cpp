@@ -41,6 +41,17 @@ void setup() {
   Serial.printf("Reset reason: %d\n", reason);
   Serial.printf("Free heap: %d bytes\n", ESP.getFreeHeap());
 
+  // IMPORTANT: Check for brownout (power issue)
+  if (reason == ESP_RST_BROWNOUT) {
+    Serial.println("\n!!! WARNING: BROWNOUT DETECTED !!!");
+    Serial.println("This indicates a power supply issue.");
+    Serial.println("Try using a better USB cable or external power supply.\n");
+  }
+
+  // Set CPU frequency to 240MHz for stability
+  // setCpuFrequencyMhz(240);
+  // Serial.printf("CPU Frequency: %d MHz\n", getCpuFreqMHz());
+
   // Create instances
   statusLED = new LEDController(LED_PIN);
   wifiManager = new WiFiManager();
@@ -61,6 +72,7 @@ void setup() {
     Serial.print(".");
     statusLED->toggle();
     delay(500);
+    yield();  // Feed watchdog
   }
   
   statusLED->on();  // LED solid when connected
@@ -87,7 +99,7 @@ void loop() {
   
   loopCounter++;
   
-  // Feed the watchdog
+  // Feed the watchdog multiple times
   yield();
   
   // Print heartbeat every 30 seconds
@@ -106,9 +118,11 @@ void loop() {
   
   // Maintain WiFi connection
   wifiManager->maintain();
+  yield();  // Feed watchdog
   
   // Update usage counter (reads sensor)
   usageCounter->update();
+  yield();  // Feed watchdog
   
   // Update LED based on WiFi status
   if (statusLED && wifiManager) {
@@ -120,6 +134,11 @@ void loop() {
     if (connected != lastState) {
       lastState = connected;
       Serial.printf("[MAIN] WiFi %s\n", connected ? "connected" : "disconnected!");
+      
+      // If disconnected, print heap to help debug
+      if (!connected) {
+        Serial.printf("[MAIN] Free heap: %d bytes\n", ESP.getFreeHeap());
+      }
     }
   }
   

@@ -41,6 +41,11 @@ private:
   String getCurrentTimestamp();
   bool sendToFirestore(const String& collection, const String& documentId, const String& jsonData);
   String buildFirestoreUrl(const String& collection, const String& documentId);
+  
+  // Internal state
+  bool _isSending;  // Prevent concurrent sends
+  uint32_t _lastSendAttempt;  // Track last send time
+  const uint32_t _minSendInterval = 5000;  // Minimum 5 seconds between sends
 };
 
 #endif // FIREBASE_MANAGER_H
