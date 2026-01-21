@@ -12,7 +12,7 @@ public:
   // Initialize Firebase manager
   void begin();
   
-  // Send usage log to Firestore
+  // Increment usage counter in Firestore
   bool sendUsageLog(uint32_t usesSent);
   
   // Get connection status
@@ -37,10 +37,14 @@ private:
   String _lastError;
   
   // Helper functions
-  String generateLogId();
   String getCurrentTimestamp();
-  bool sendToFirestore(const String& collection, const String& documentId, const String& jsonData);
-  String buildFirestoreUrl(const String& collection, const String& documentId);
+  int createFirestoreDocument(const String& collection, const String& documentId, const String& jsonData);
+  int getFirestoreDocument(const String& collection, const String& documentId, String& response);
+  int patchFirestoreDocument(const String& collection, const String& documentId, const String& jsonData, const String& updateMask);
+  String buildFirestoreCreateUrl(const String& collection, const String& documentId) const;
+  String buildFirestoreDocumentUrl(const String& collection, const String& documentId) const;
+  String buildFirestoreDocumentUrlWithMask(const String& collection, const String& documentId, const String& updateMask) const;
+  String buildFirestoreDocumentPath(const String& collection, const String& documentId) const;
   
   // Internal state
   bool _isSending;  // Prevent concurrent sends
